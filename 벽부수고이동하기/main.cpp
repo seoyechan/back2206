@@ -14,6 +14,7 @@ int nRet;
 
 typedef struct pos{
 	int x, y, dis;
+	bool flag;
 };
 
 int dirx[] = { 0, 0, 1, -1 };
@@ -28,12 +29,14 @@ int bfs()
 			nvisit[i][j] = 0;
 
 	queue <pos> bfs_q;
-	bfs_q.push({ 0, 0, 0 });
+	bfs_q.push({ 0, 0, 0, true });
 
 	nvisit[0][0] = 1;
 
 	pos cur_pos = { 0, }; 
 	pos next_pos = { 0, };
+	
+	int dis = 0;
 
 	while (!bfs_q.empty())
 	{
@@ -43,25 +46,33 @@ int bfs()
 		for (int i = 0; i < 4; i++){
 			next_pos.x = cur_pos.x + dirx[i];
 			next_pos.y = cur_pos.y + diry[i];
+			next_pos.dis = cur_pos.dis;
+			next_pos.flag = cur_pos.flag;
 
 			if (next_pos.x == x - 1 && next_pos.y == y - 1){
-				return next_pos.dis;
+				return next_pos.dis + 2;
 			}
 
 			if (next_pos.x >= 0 && next_pos.x < x && next_pos.y >= 0 && next_pos.y < y
-				&& !nvisit[next_pos.y][next_pos.x] && !nfiled[next_pos.y][next_pos.x]){
-				next_pos.dis++;
-				bfs_q.push(next_pos);
-				nvisit[next_pos.y][next_pos.x] = 1;
+				&& !nvisit[next_pos.y][next_pos.x]){
 
-				if (next_pos.dis > nRet + 1){
-					return -1;
+				if (nfiled[next_pos.y][next_pos.x]){
+					if (next_pos.flag){
+						dis = next_pos.dis + 1;
+						bfs_q.push({ next_pos.x, next_pos.y, dis, false });
+						nvisit[next_pos.y][next_pos.x] = 1;
+					}
 				}
-
+				else{
+					dis = next_pos.dis + 1;
+					bfs_q.push({ next_pos.x, next_pos.y, dis, next_pos.flag });
+					nvisit[next_pos.y][next_pos.x] = 1;
+				}
 			}
 		}
 	}
-	return 987654321;
+
+	return -1;
 }
 
 
@@ -74,25 +85,9 @@ int breaking_wall()
 	int temp_dis = 0;
 
 	temp_dis = bfs();
-	nRet = min(nRet, temp_dis);
+	nRet = min(temp_dis, nRet);
 
-	for (int i = 0; i < y; i++){
-		for (int j = 0; j < x; j++){
-
-			if (nfiled[i][j])
-			{
-				nfiled[i][j] = 0;
-
-				temp_dis = bfs();
-
-				if (temp_dis != -1)
-					nRet = min(nRet, temp_dis);
-
-				nfiled[i][j] = 1;
-			}
-		}
-	}
-
+	
 	return 0;
 
 
