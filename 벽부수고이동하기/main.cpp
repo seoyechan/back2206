@@ -1,42 +1,33 @@
-#include <stdio.h>
+#include <iostream>
 #include <queue>
 #include <algorithm>
 
-#define _CRT_SECURE_NO_WARNINGS
-#pragma warning(disable:4996)
-
 using namespace std;
 
-int nfiled[1001][1001];
-int nvisit[1001][1001];
+char nfiled[1001][1001];
+int nvisit[1001][1001][2];
 int x, y;
 int nRet;
 
 typedef struct pos{
-	int x, y, dis;
-	bool flag;
+	int x, y, flag;
 };
 
-int dirx[] = { 0, 0, 1, -1 };
-int diry[] = { 1, -1, 0, 0 };
+int dirx[] = { -1, 1, 0, 0 };
+int diry[] = { 0, 0, -1, 1 };
 
 
 
-int bfs()
+void bfs()
 {
-	for (int i = 0; i < y; i++)
-		for (int j = 0; j < x; j++)
-			nvisit[i][j] = 0;
 
 	queue <pos> bfs_q;
-	bfs_q.push({ 0, 0, 0, true });
+	bfs_q.push({ 0, 0, 0 });
 
-	nvisit[0][0] = 1;
+	nvisit[0][0][0] = 1;
 
-	pos cur_pos = { 0, }; 
+	pos cur_pos = { 0, };
 	pos next_pos = { 0, };
-	
-	int dis = 0;
 
 	while (!bfs_q.empty())
 	{
@@ -46,33 +37,24 @@ int bfs()
 		for (int i = 0; i < 4; i++){
 			next_pos.x = cur_pos.x + dirx[i];
 			next_pos.y = cur_pos.y + diry[i];
-			next_pos.dis = cur_pos.dis;
-			next_pos.flag = cur_pos.flag;
 
-			if (next_pos.x == x - 1 && next_pos.y == y - 1){
-				return next_pos.dis + 2;
-			}
+			if (next_pos.x >= 0 && next_pos.x < x && next_pos.y >= 0 && next_pos.y < y)
+			{
 
-			if (next_pos.x >= 0 && next_pos.x < x && next_pos.y >= 0 && next_pos.y < y
-				&& !nvisit[next_pos.y][next_pos.x]){
-
-				if (nfiled[next_pos.y][next_pos.x]){
-					if (next_pos.flag){
-						dis = next_pos.dis + 1;
-						bfs_q.push({ next_pos.x, next_pos.y, dis, false });
-						nvisit[next_pos.y][next_pos.x] = 1;
-					}
+				if (nfiled[next_pos.y][next_pos.x] == '0' && !nvisit[next_pos.y][next_pos.x][cur_pos.flag]){
+					nvisit[next_pos.y][next_pos.x][cur_pos.flag] = nvisit[cur_pos.y][cur_pos.x][cur_pos.flag] + 1;
+					bfs_q.push({ next_pos.x, next_pos.y, cur_pos.flag });
 				}
-				else{
-					dis = next_pos.dis + 1;
-					bfs_q.push({ next_pos.x, next_pos.y, dis, next_pos.flag });
-					nvisit[next_pos.y][next_pos.x] = 1;
+
+				if (!cur_pos.flag && nfiled[next_pos.y][next_pos.x] == '1' && !nvisit[next_pos.y][next_pos.x][cur_pos.flag + 1])
+				{
+					nvisit[next_pos.y][next_pos.x][cur_pos.flag + 1] = nvisit[cur_pos.y][cur_pos.x][cur_pos.flag] + 1;
+					bfs_q.push({ next_pos.x, next_pos.y, cur_pos.flag + 1 });
 				}
+
 			}
 		}
 	}
-
-	return -1;
 }
 
 
@@ -82,13 +64,24 @@ int bfs()
 
 int breaking_wall()
 {
-	int temp_dis = 0;
+	int Result = 0;
 
-	temp_dis = bfs();
-	nRet = min(temp_dis, nRet);
+	bfs();
 
-	
-	return 0;
+	if (nvisit[y - 1][x - 1][0] != 0 && nvisit[y - 1][x - 1][1] != 0)
+		Result = min(nvisit[y - 1][x - 1][0], nvisit[y - 1][x - 1][1]);
+
+	else if (nvisit[y - 1][x - 1][0] != 0)
+		Result = nvisit[y - 1][x - 1][0];
+
+	else if (nvisit[y - 1][x - 1][1] != 0)
+		Result = nvisit[y - 1][x - 1][1];
+
+	else
+		Result = -1;
+
+
+	return Result;
 
 
 }
@@ -96,26 +89,20 @@ int breaking_wall()
 
 int main()
 {
-	freopen("input.txt", "r", stdin);
-	scanf("%d %d", &y, &x);
+	cin.tie(0);
+	ios::sync_with_stdio(0);
+	cin >> y >> x;
 
 	for (int i = 0; i < y; i++){
 		for (int j = 0; j < x; j++){
-			scanf("%d", &nfiled[i][j]);
+			cin >> nfiled[i][j];
 		}
 	}
 
-	nRet = 987654321;
-	breaking_wall();
+	nRet = 0;
+	nRet = breaking_wall();
 
-	if (nRet == 987654321){
-		nRet = -1;
-	}
+	cout << nRet << endl;
 
-	printf("%d\n", nRet);
-
-
-
-	
 	return 0;
 }
